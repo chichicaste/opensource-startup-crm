@@ -3,125 +3,130 @@ import prisma from '$lib/prisma';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, locals }) {
-  if (!locals.user || !locals.org) {
-    throw redirect(302, '/login');
-  }
+	if (!locals.user || !locals.org) {
+		throw redirect(302, '/login');
+	}
 
-  const invoice = await prisma.quote.findFirst({
-    where: {
-      id: params.invoiceId,
-      organizationId: locals.org.id
-    },
-    include: {
-      account: {
-        select: {
-          id: true,
-          name: true
-        }
-      },
-      lineItems: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              code: true
-            }
-          }
-        },
-        orderBy: {
-          id: 'asc'
-        }
-      }
-    }
-  });
+	const invoice = await prisma.quote.findFirst({
+		where: {
+			id: params.invoiceId,
+			organizationId: locals.org.id
+		},
+		include: {
+			account: {
+				select: {
+					id: true,
+					name: true
+				}
+			},
+			lineItems: {
+				include: {
+					product: {
+						select: {
+							id: true,
+							name: true,
+							code: true
+						}
+					}
+				},
+				orderBy: {
+					id: 'asc'
+				}
+			}
+		}
+	});
 
-  if (!invoice) {
-    throw error(404, 'Invoice not found');
-  }
+	if (!invoice) {
+		throw error(404, 'Invoice not found');
+	}
 
-  // Get accounts for the dropdown
-  const accounts = await prisma.account.findMany({
-    where: {
-      organizationId: locals.org.id,
-      isActive: true,
-      isDeleted: false
-    },
-    select: {
-      id: true,
-      name: true
-    },
-    orderBy: {
-      name: 'asc'
-    }
-  });
+	// Get accounts for the dropdown
+	const accounts = await prisma.account.findMany({
+		where: {
+			organizationId: locals.org.id,
+			isActive: true,
+			isDeleted: false
+		},
+		select: {
+			id: true,
+			name: true
+		},
+		orderBy: {
+			name: 'asc'
+		}
+	});
 
-  return {
-    invoice,
-    accounts
-  };
+	return {
+		invoice,
+		accounts
+	};
 }
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-  default: async ({ request, params, locals }) => {
-    if (!locals.user || !locals.org) {
-      return fail(401, { error: 'Unauthorized' });
-    }
+	default: async ({ request, params, locals }) => {
+		if (!locals.user || !locals.org) {
+			return fail(401, { error: 'Unauthorized' });
+		}
 
-    const formData = await request.formData();
-    
-    const accountId = String(formData.get('account_id') || '');
-    const invoiceDate = String(formData.get('invoice_date') || '');
-    const dueDate = String(formData.get('due_date') || '');
-    const status = String(formData.get('status') || 'DRAFT');
-    const notes = String(formData.get('notes') || '');
+		const formData = await request.formData();
 
-    // Validation
-    if (!accountId || !invoiceDate || !dueDate) {
-      return fail(400, { 
-        error: 'Account, invoice date, and due date are required' 
-      });
-    }
+		const accountId = String(formData.get('account_id') || '');
+		const invoiceDate = String(formData.get('invoice_date') || '');
+		const dueDate = String(formData.get('due_date') || '');
+		const status = String(formData.get('status') || 'DRAFT');
+		const notes = String(formData.get('notes') || '');
 
-    try {
-      const invoice = await prisma.quote.findFirst({
-        where: {
-          id: params.invoiceId,
-          organizationId: locals.org.id
-        }
-      });
+		// Validation
+		if (!accountId || !invoiceDate || !dueDate) {
+			return fail(400, {
+				error: 'Account, invoice date, and due date are required'
+			});
+		}
 
-      if (!invoice) {
-        return fail(404, { error: 'Invoice not found' });
-      }
+		try {
+			const invoice = await prisma.quote.findFirst({
+				where: {
+					id: params.invoiceId,
+					organizationId: locals.org.id
+				}
+			});
 
-      // Convert status for Quote model
-      const quoteStatus = status === 'DRAFT' ? 'DRAFT' : 
-                         status === 'SENT' ? 'PRESENTED' : 
-                         status === 'PAID' ? 'ACCEPTED' : 'DRAFT';
+			if (!invoice) {
+				return fail(404, { error: 'Invoice not found' });
+			}
 
-      await prisma.quote.update({
-        where: {
-          id: params.invoiceId
-        },
-        data: {
-          accountId,
-          status: quoteStatus,
-          description: notes,
-          expirationDate: new Date(dueDate),
-          updatedAt: new Date()
-        }
-      });
+			// Convert status for Quote model
+			const quoteStatus =
+				status === 'DRAFT'
+					? 'DRAFT'
+					: status === 'SENT'
+						? 'PRESENTED'
+						: status === 'PAID'
+							? 'ACCEPTED'
+							: 'DRAFT';
 
-      throw redirect(303, `/app/invoices/${params.invoiceId}`);
-    } catch (err) {
-      if (err instanceof Response) throw err; // Re-throw redirects
-      
-      console.error('Error updating invoice:', err);
-      return fail(500, { 
-        error: 'Failed to update invoice. Please try again.' 
-      });
-    }
-  }
+			await prisma.quote.update({
+				where: {
+					id: params.invoiceId
+				},
+				data: {
+					accountId,
+					status: quoteStatus,
+					description: notes,
+					expirationDate: new Date(dueDate),
+					updatedAt: new Date()
+				}
+			});
+
+			throw redirect(303, `/app/invoices/${params.invoiceId}`);
+		} catch (err) {
+			if (err instanceof Response) throw err; // Re-throw redirects
+
+			console.error('Error updating invoice:', err);
+			return fail(500, {
+				error: 'Failed to update invoice. Please try again.'
+			});
+		}
+	}
 };

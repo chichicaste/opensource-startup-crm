@@ -150,128 +150,128 @@ const prisma = new PrismaClient();
  *         description: Internal server error
  */
 router.get('/', verifyToken, requireOrganization, async (req, res) => {
-  try {
-    const userId = req.userId;
-    const organizationId = req.organizationId;
+	try {
+		const userId = req.userId;
+		const organizationId = req.organizationId;
 
-    // Fetch dashboard metrics - parallel execution for performance
-    const [
-      totalLeads,
-      totalOpportunities,
-      totalAccounts,
-      totalContacts,
-      pendingTasks,
-      recentLeads,
-      recentOpportunities,
-      upcomingTasks,
-      recentActivities
-    ] = await Promise.all([
-      // Count metrics
-      prisma.lead.count({
-        where: { organizationId, isConverted: false }
-      }),
-      prisma.opportunity.count({
-        where: { organizationId, stage: { not: 'CLOSED_WON' } }
-      }),
-      prisma.account.count({
-        where: { organizationId, isActive: true }
-      }),
-      prisma.contact.count({
-        where: { organizationId }
-      }),
-      prisma.task.count({
-        where: { 
-          organizationId,
-          status: { not: 'Completed' },
-          ownerId: userId
-        }
-      }),
+		// Fetch dashboard metrics - parallel execution for performance
+		const [
+			totalLeads,
+			totalOpportunities,
+			totalAccounts,
+			totalContacts,
+			pendingTasks,
+			recentLeads,
+			recentOpportunities,
+			upcomingTasks,
+			recentActivities
+		] = await Promise.all([
+			// Count metrics
+			prisma.lead.count({
+				where: { organizationId, isConverted: false }
+			}),
+			prisma.opportunity.count({
+				where: { organizationId, stage: { not: 'CLOSED_WON' } }
+			}),
+			prisma.account.count({
+				where: { organizationId, isActive: true }
+			}),
+			prisma.contact.count({
+				where: { organizationId }
+			}),
+			prisma.task.count({
+				where: {
+					organizationId,
+					status: { not: 'Completed' },
+					ownerId: userId
+				}
+			}),
 
-      // Recent data
-      prisma.lead.findMany({
-        where: { organizationId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          company: true,
-          status: true,
-          createdAt: true
-        }
-      }),
-      prisma.opportunity.findMany({
-        where: { organizationId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          account: {
-            select: { name: true }
-          }
-        }
-      }),
-      prisma.task.findMany({
-        where: { 
-          organizationId,
-          ownerId: userId,
-          status: { not: 'Completed' },
-          dueDate: { gte: new Date() }
-        },
-        orderBy: { dueDate: 'asc' },
-        take: 5,
-        select: {
-          id: true,
-          subject: true,
-          status: true,
-          priority: true,
-          dueDate: true
-        }
-      }),
-      prisma.auditLog.findMany({
-        where: { organizationId },
-        orderBy: { timestamp: 'desc' },
-        take: 10,
-        include: {
-          user: {
-            select: { name: true }
-          }
-        }
-      })
-    ]);
+			// Recent data
+			prisma.lead.findMany({
+				where: { organizationId },
+				orderBy: { createdAt: 'desc' },
+				take: 5,
+				select: {
+					id: true,
+					firstName: true,
+					lastName: true,
+					company: true,
+					status: true,
+					createdAt: true
+				}
+			}),
+			prisma.opportunity.findMany({
+				where: { organizationId },
+				orderBy: { createdAt: 'desc' },
+				take: 5,
+				include: {
+					account: {
+						select: { name: true }
+					}
+				}
+			}),
+			prisma.task.findMany({
+				where: {
+					organizationId,
+					ownerId: userId,
+					status: { not: 'Completed' },
+					dueDate: { gte: new Date() }
+				},
+				orderBy: { dueDate: 'asc' },
+				take: 5,
+				select: {
+					id: true,
+					subject: true,
+					status: true,
+					priority: true,
+					dueDate: true
+				}
+			}),
+			prisma.auditLog.findMany({
+				where: { organizationId },
+				orderBy: { timestamp: 'desc' },
+				take: 10,
+				include: {
+					user: {
+						select: { name: true }
+					}
+				}
+			})
+		]);
 
-    // Calculate opportunity revenue
-    const opportunityRevenue = await prisma.opportunity.aggregate({
-      where: { organizationId },
-      _sum: { amount: true }
-    });
+		// Calculate opportunity revenue
+		const opportunityRevenue = await prisma.opportunity.aggregate({
+			where: { organizationId },
+			_sum: { amount: true }
+		});
 
-    const response = {
-      success: true,
-      metrics: {
-        totalLeads,
-        totalOpportunities,
-        totalAccounts,
-        totalContacts,
-        pendingTasks,
-        opportunityRevenue: opportunityRevenue._sum.amount || 0
-      },
-      recentData: {
-        leads: recentLeads,
-        opportunities: recentOpportunities,
-        tasks: upcomingTasks,
-        activities: recentActivities
-      }
-    };
+		const response = {
+			success: true,
+			metrics: {
+				totalLeads,
+				totalOpportunities,
+				totalAccounts,
+				totalContacts,
+				pendingTasks,
+				opportunityRevenue: opportunityRevenue._sum.amount || 0
+			},
+			recentData: {
+				leads: recentLeads,
+				opportunities: recentOpportunities,
+				tasks: upcomingTasks,
+				activities: recentActivities
+			}
+		};
 
-    res.json(response);
-  } catch (error) {
-    console.error('Dashboard API error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to load dashboard data' 
-    });
-  }
+		res.json(response);
+	} catch (error) {
+		console.error('Dashboard API error:', error);
+		res.status(500).json({
+			success: false,
+			error: 'Failed to load dashboard data'
+		});
+	}
 });
 
 /**
@@ -311,64 +311,64 @@ router.get('/', verifyToken, requireOrganization, async (req, res) => {
  *         description: Internal server error
  */
 router.get('/metrics', verifyToken, requireOrganization, async (req, res) => {
-  try {
-    const userId = req.userId;
-    const organizationId = req.organizationId;
+	try {
+		const userId = req.userId;
+		const organizationId = req.organizationId;
 
-    // Fetch only metrics for lightweight response
-    const [
-      totalLeads,
-      totalOpportunities,
-      totalAccounts,
-      totalContacts,
-      pendingTasks,
-      opportunityRevenue
-    ] = await Promise.all([
-      prisma.lead.count({
-        where: { organizationId, isConverted: false }
-      }),
-      prisma.opportunity.count({
-        where: { organizationId, stage: { not: 'CLOSED_WON' } }
-      }),
-      prisma.account.count({
-        where: { organizationId, isActive: true }
-      }),
-      prisma.contact.count({
-        where: { organizationId }
-      }),
-      prisma.task.count({
-        where: { 
-          organizationId,
-          status: { not: 'Completed' },
-          ownerId: userId
-        }
-      }),
-      prisma.opportunity.aggregate({
-        where: { organizationId },
-        _sum: { amount: true }
-      })
-    ]);
+		// Fetch only metrics for lightweight response
+		const [
+			totalLeads,
+			totalOpportunities,
+			totalAccounts,
+			totalContacts,
+			pendingTasks,
+			opportunityRevenue
+		] = await Promise.all([
+			prisma.lead.count({
+				where: { organizationId, isConverted: false }
+			}),
+			prisma.opportunity.count({
+				where: { organizationId, stage: { not: 'CLOSED_WON' } }
+			}),
+			prisma.account.count({
+				where: { organizationId, isActive: true }
+			}),
+			prisma.contact.count({
+				where: { organizationId }
+			}),
+			prisma.task.count({
+				where: {
+					organizationId,
+					status: { not: 'Completed' },
+					ownerId: userId
+				}
+			}),
+			prisma.opportunity.aggregate({
+				where: { organizationId },
+				_sum: { amount: true }
+			})
+		]);
 
-    const response = {
-      success: true,
-      metrics: {
-        totalLeads,
-        totalOpportunities,
-        totalAccounts,
-        totalContacts,
-        pendingTasks,
-        opportunityRevenue: opportunityRevenue._sum.amount || 0
-      }
-    };
+		const response = {
+			success: true,
+			metrics: {
+				totalLeads,
+				totalOpportunities,
+				totalAccounts,
+				totalContacts,
+				pendingTasks,
+				opportunityRevenue: opportunityRevenue._sum.amount || 0
+			}
+		};
 
-    res.json(response);
-  } catch (error) {
-    console.error('Dashboard metrics API error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to load dashboard metrics' 
-    });
-  }
+		res.json(response);
+	} catch (error) {
+		console.error('Dashboard metrics API error:', error);
+		res.status(500).json({
+			success: false,
+			error: 'Failed to load dashboard metrics'
+		});
+	}
 });
 
 export default router;

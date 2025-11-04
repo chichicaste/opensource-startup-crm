@@ -1,95 +1,102 @@
 import { env } from '$env/dynamic/private';
-import prisma from '$lib/prisma'
+import prisma from '$lib/prisma';
 import { redirect } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ cookies }) {
-  
-}
+export async function load({ cookies }) {}
 
 /** @satisfies {import('./$types').Actions} */
 export const actions = {
-  default: async ({ request, cookies, locals }) => {
-    // Get the user from locals
-    const user = locals.user;
-    
-    if (!user) {
-      return {
-        error: {
-          name: 'You must be logged in to create an organization'
-        }
-      };
-    }
-    
-    // Get the submitted form data
-    const formData = await request.formData();
-    const orgName = formData.get('org_name')?.toString();
+	default: async ({ request, cookies, locals }) => {
+		// Get the user from locals
+		const user = locals.user;
 
-    if (!orgName) {
-      return {
-        error: {
-          name: 'Organization name is required'
-        }
-      };
-    }
+		if (!user) {
+			return {
+				error: {
+					name: 'You must be logged in to create an organization'
+				}
+			};
+		}
 
-    try {
-      // Check if organization with the same name already exists
-      const existingOrg = await prisma.organization.findFirst({
-        where: {
-          name: orgName
-        }
-      });
+		// Check if user is a super admin (only inveringsadecv@gmail.com can create organizations)
+		if (!user.email || user.email !== 'inveringsadecv@gmail.com') {
+			return {
+				error: {
+					name: 'Only the system administrator can create organizations.'
+				}
+			};
+		}
 
-      if (existingOrg) {
-        return { 
-          error: { 
-            name: 'Organization with this name already exists' 
-          } 
-        };
-      }
+		// Get the submitted form data
+		const formData = await request.formData();
+		const orgName = formData.get('org_name')?.toString();
 
-      // Use a transaction to create both the organization and user-organization relationship
-      const result = await prisma.$transaction(async (prisma) => {
-        // Create new organization
-        const newOrg = await prisma.organization.create({
-          data: {
-            name: orgName,
-          }
-        });
+		if (!orgName) {
+			return {
+				error: {
+					name: 'Organization name is required'
+				}
+			};
+		}
 
-        // Create user-organization relationship with ADMIN role
-        const userOrg = await prisma.userOrganization.create({
-          data: {
-            userId: user.id,
-            organizationId: newOrg.id,
-            role: 'ADMIN'
-          }
-        });
+		try {
+			// Check if organization with the same name already exists
+			const existingOrg = await prisma.organization.findFirst({
+				where: {
+					name: orgName
+				}
+			});
 
-        return { newOrg, userOrg };
-      });
+			if (existingOrg) {
+				return {
+					error: {
+						name: 'Organization with this name already exists'
+					}
+				};
+			}
 
-      // Set org cookie for the newly created org
-      cookies.set('org', result.newOrg.id, {
-        path: '/',
-        httpOnly: true,
-        sameSite: 'strict'
-      });
+			// Use a transaction to create both the organization and user-organization relationship
+			const result = await prisma.$transaction(async (prisma) => {
+				// Create new organization
+				const newOrg = await prisma.organization.create({
+					data: {
+						name: orgName
+					}
+				});
 
-      // Redirect to home page after successful creation
-      return {
-        data:{
-          name:orgName
-        }
-      }
-    } catch (err) {
-      console.error('Error creating organization:', err);
-      return { 
-        error: { 
-          name: 'An unexpected error occurred while creating the organization.' 
-        } 
-      };
-    }
-  }
+				// Create user-organization relationship with ADMIN role
+				const userOrg = await prisma.userOrganization.create({
+					data: {
+						userId: user.id,
+						organizationId: newOrg.id,
+						role: 'ADMIN'
+					}
+				});
+
+				return { newOrg, userOrg };
+			});
+
+			// Set org cookie for the newly created org
+			cookies.set('org', result.newOrg.id, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'strict'
+			});
+
+			// Redirect to home page after successful creation
+			return {
+				data: {
+					name: orgName
+				}
+			};
+		} catch (err) {
+			console.error('Error creating organization:', err);
+			return {
+				error: {
+					name: 'An unexpected error occurred while creating the organization.'
+				}
+			};
+		}
+	}
 };

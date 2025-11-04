@@ -1,23 +1,23 @@
 {
-  "editor.tabSize": 2,
-  "editor.insertSpaces": true,
-  "[javascript]": {
-    "editor.tabSize": 2,
-    "editor.insertSpaces": true
-  },
-  "[svelte]": {
-    "editor.tabSize": 2,
-    "editor.insertSpaces": true
-  },
-  "github.copilot.chat.codeGeneration.instructions": [
-    {
-      "file": "prisma/schema.prisma",
-    },
-    {
-      "file": "src/hooks.server.js",
-    },
-    {
-      "file": "src/lib/prisma.js",
-    },
-  ]
+	"editor.tabSize": 2,
+	"editor.insertSpaces": true,
+	"[javascript]": {
+		"editor.tabSize": 2,
+		"editor.insertSpaces": true
+	},
+	"[svelte]": {
+		"editor.tabSize": 2,
+		"editor.insertSpaces": true
+	},
+	"github.copilot.chat.codeGeneration.instructions": [
+		{
+			"file": "prisma/schema.prisma"
+		},
+		{
+			"file": "src/hooks.server.js"
+		},
+		{
+			"file": "src/lib/prisma.js"
+		}
+	]
 }

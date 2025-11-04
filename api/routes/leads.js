@@ -40,54 +40,43 @@ router.use(requireOrganization);
  *                     type: string
  */
 router.get('/metadata', async (req, res) => {
-  try {
-    const metadata = {
-      leadStatuses: [
-        'NEW',
-        'PENDING', 
-        'CONTACTED',
-        'QUALIFIED',
-        'UNQUALIFIED',
-        'CONVERTED'
-      ],
-      leadSources: [
-        'WEB',
-        'PHONE_INQUIRY',
-        'PARTNER_REFERRAL', 
-        'COLD_CALL',
-        'TRADE_SHOW',
-        'EMPLOYEE_REFERRAL',
-        'ADVERTISEMENT',
-        'OTHER'
-      ],
-      ratings: [
-        'Hot',
-        'Warm', 
-        'Cold'
-      ],
-      industries: [
-        'Technology',
-        'Healthcare',
-        'Finance',
-        'Education',
-        'Manufacturing',
-        'Retail',
-        'Real Estate',
-        'Consulting',
-        'Media',
-        'Transportation',
-        'Energy',
-        'Government',
-        'Non-profit',
-        'Other'
-      ]
-    };
+	try {
+		const metadata = {
+			leadStatuses: ['NEW', 'PENDING', 'CONTACTED', 'QUALIFIED', 'UNQUALIFIED', 'CONVERTED'],
+			leadSources: [
+				'WEB',
+				'PHONE_INQUIRY',
+				'PARTNER_REFERRAL',
+				'COLD_CALL',
+				'TRADE_SHOW',
+				'EMPLOYEE_REFERRAL',
+				'ADVERTISEMENT',
+				'OTHER'
+			],
+			ratings: ['Hot', 'Warm', 'Cold'],
+			industries: [
+				'Technology',
+				'Healthcare',
+				'Finance',
+				'Education',
+				'Manufacturing',
+				'Retail',
+				'Real Estate',
+				'Consulting',
+				'Media',
+				'Transportation',
+				'Energy',
+				'Government',
+				'Non-profit',
+				'Other'
+			]
+		};
 
-    res.json(metadata);
-  } catch (error) {
-    console.error('Get leads metadata error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+		res.json(metadata);
+	} catch (error) {
+		console.error('Get leads metadata error:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 /**
@@ -208,121 +197,114 @@ router.get('/metadata', async (req, res) => {
  *                   type: object
  */
 router.get('/', async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    
-    const { 
-      search, 
-      status, 
-      leadSource, 
-      industry, 
-      rating, 
-      converted 
-    } = req.query;
+	try {
+		const page = parseInt(req.query.page) || 1;
+		const limit = parseInt(req.query.limit) || 10;
+		const skip = (page - 1) * limit;
 
-    // Build where clause for filtering
-    let whereClause = { 
-      organizationId: req.organizationId 
-    };
+		const { search, status, leadSource, industry, rating, converted } = req.query;
 
-    // Add search filter (search in firstName, lastName, email, company)
-    if (search) {
-      whereClause.OR = [
-        { 
-          firstName: { 
-            contains: search, 
-            mode: 'insensitive' 
-          } 
-        },
-        { 
-          lastName: { 
-            contains: search, 
-            mode: 'insensitive' 
-          } 
-        },
-        { 
-          email: { 
-            contains: search, 
-            mode: 'insensitive' 
-          } 
-        },
-        { 
-          company: { 
-            contains: search, 
-            mode: 'insensitive' 
-          } 
-        }
-      ];
-    }
+		// Build where clause for filtering
+		let whereClause = {
+			organizationId: req.organizationId
+		};
 
-    // Add status filter
-    if (status) {
-      whereClause.status = status;
-    }
+		// Add search filter (search in firstName, lastName, email, company)
+		if (search) {
+			whereClause.OR = [
+				{
+					firstName: {
+						contains: search,
+						mode: 'insensitive'
+					}
+				},
+				{
+					lastName: {
+						contains: search,
+						mode: 'insensitive'
+					}
+				},
+				{
+					email: {
+						contains: search,
+						mode: 'insensitive'
+					}
+				},
+				{
+					company: {
+						contains: search,
+						mode: 'insensitive'
+					}
+				}
+			];
+		}
 
-    // Add leadSource filter
-    if (leadSource) {
-      whereClause.leadSource = leadSource;
-    }
+		// Add status filter
+		if (status) {
+			whereClause.status = status;
+		}
 
-    // Add industry filter
-    if (industry) {
-      whereClause.industry = {
-        contains: industry,
-        mode: 'insensitive'
-      };
-    }
+		// Add leadSource filter
+		if (leadSource) {
+			whereClause.leadSource = leadSource;
+		}
 
-    // Add rating filter
-    if (rating) {
-      whereClause.rating = rating;
-    }
+		// Add industry filter
+		if (industry) {
+			whereClause.industry = {
+				contains: industry,
+				mode: 'insensitive'
+			};
+		}
 
-    // Add converted filter
-    if (converted !== undefined) {
-      whereClause.isConverted = converted === 'true';
-    }
+		// Add rating filter
+		if (rating) {
+			whereClause.rating = rating;
+		}
 
-    const [leads, total] = await Promise.all([
-      prisma.lead.findMany({
-        where: whereClause,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          owner: {
-            select: { id: true, name: true, email: true }
-          }
-        }
-      }),
-      prisma.lead.count({
-        where: whereClause
-      })
-    ]);
+		// Add converted filter
+		if (converted !== undefined) {
+			whereClause.isConverted = converted === 'true';
+		}
 
-    // Calculate pagination info
-    const totalPages = Math.ceil(total / limit);
-    const hasNext = page < totalPages;
-    const hasPrev = page > 1;
+		const [leads, total] = await Promise.all([
+			prisma.lead.findMany({
+				where: whereClause,
+				skip,
+				take: limit,
+				orderBy: { createdAt: 'desc' },
+				include: {
+					owner: {
+						select: { id: true, name: true, email: true }
+					}
+				}
+			}),
+			prisma.lead.count({
+				where: whereClause
+			})
+		]);
 
-    res.json({
-      success: true,
-      leads,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext,
-        hasPrev
-      }
-    });
-  } catch (error) {
-    console.error('Get leads error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+		// Calculate pagination info
+		const totalPages = Math.ceil(total / limit);
+		const hasNext = page < totalPages;
+		const hasPrev = page > 1;
+
+		res.json({
+			success: true,
+			leads,
+			pagination: {
+				page,
+				limit,
+				total,
+				totalPages,
+				hasNext,
+				hasPrev
+			}
+		});
+	} catch (error) {
+		console.error('Get leads error:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 /**
@@ -353,28 +335,28 @@ router.get('/', async (req, res) => {
  *         description: Lead not found
  */
 router.get('/:id', async (req, res) => {
-  try {
-    const lead = await prisma.lead.findFirst({
-      where: {
-        id: req.params.id,
-        organizationId: req.organizationId
-      },
-      include: {
-        owner: {
-          select: { id: true, name: true, email: true }
-        }
-      }
-    });
+	try {
+		const lead = await prisma.lead.findFirst({
+			where: {
+				id: req.params.id,
+				organizationId: req.organizationId
+			},
+			include: {
+				owner: {
+					select: { id: true, name: true, email: true }
+				}
+			}
+		});
 
-    if (!lead) {
-      return res.status(404).json({ error: 'Lead not found' });
-    }
+		if (!lead) {
+			return res.status(404).json({ error: 'Lead not found' });
+		}
 
-    res.json(lead);
-  } catch (error) {
-    console.error('Get lead error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+		res.json(lead);
+	} catch (error) {
+		console.error('Get lead error:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 /**
@@ -432,80 +414,91 @@ router.get('/:id', async (req, res) => {
  *         description: Invalid input
  */
 router.post('/', async (req, res) => {
-  try {
-    const { 
-      firstName, 
-      lastName, 
-      email, 
-      phone, 
-      company, 
-      title,
-      status, 
-      leadSource,
-      industry,
-      rating,
-      description
-    } = req.body;
+	try {
+		const {
+			firstName,
+			lastName,
+			email,
+			phone,
+			company,
+			title,
+			status,
+			leadSource,
+			industry,
+			rating,
+			description
+		} = req.body;
 
-    if (!firstName || !lastName || !email) {
-      return res.status(400).json({ error: 'First name, last name, and email are required' });
-    }
+		if (!firstName || !lastName || !email) {
+			return res.status(400).json({ error: 'First name, last name, and email are required' });
+		}
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
-    }
+		// Validate email format
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			return res.status(400).json({ error: 'Invalid email format' });
+		}
 
-    // Validate status if provided
-    const validStatuses = ['NEW', 'PENDING', 'CONTACTED', 'QUALIFIED', 'UNQUALIFIED', 'CONVERTED'];
-    if (status && !validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status value' });
-    }
+		// Validate status if provided
+		const validStatuses = ['NEW', 'PENDING', 'CONTACTED', 'QUALIFIED', 'UNQUALIFIED', 'CONVERTED'];
+		if (status && !validStatuses.includes(status)) {
+			return res.status(400).json({ error: 'Invalid status value' });
+		}
 
-    // Validate leadSource if provided
-    const validSources = ['WEB', 'PHONE_INQUIRY', 'PARTNER_REFERRAL', 'COLD_CALL', 'TRADE_SHOW', 'EMPLOYEE_REFERRAL', 'ADVERTISEMENT', 'OTHER'];
-    if (leadSource && !validSources.includes(leadSource)) {
-      return res.status(400).json({ error: 'Invalid lead source value' });
-    }
+		// Validate leadSource if provided
+		const validSources = [
+			'WEB',
+			'PHONE_INQUIRY',
+			'PARTNER_REFERRAL',
+			'COLD_CALL',
+			'TRADE_SHOW',
+			'EMPLOYEE_REFERRAL',
+			'ADVERTISEMENT',
+			'OTHER'
+		];
+		if (leadSource && !validSources.includes(leadSource)) {
+			return res.status(400).json({ error: 'Invalid lead source value' });
+		}
 
-    // Validate rating if provided
-    const validRatings = ['Hot', 'Warm', 'Cold'];
-    if (rating && !validRatings.includes(rating)) {
-      return res.status(400).json({ error: 'Invalid rating value' });
-    }
+		// Validate rating if provided
+		const validRatings = ['Hot', 'Warm', 'Cold'];
+		if (rating && !validRatings.includes(rating)) {
+			return res.status(400).json({ error: 'Invalid rating value' });
+		}
 
-    const lead = await prisma.lead.create({
-      data: {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim().toLowerCase(),
-        phone: phone?.trim() || null,
-        company: company?.trim() || null,
-        title: title?.trim() || null,
-        status: status || 'PENDING',
-        leadSource: leadSource || null,
-        industry: industry?.trim() || null,
-        rating: rating || null,
-        description: description?.trim() || null,
-        organizationId: req.organizationId,
-        ownerId: req.userId
-      },
-      include: {
-        owner: {
-          select: { id: true, name: true, email: true }
-        }
-      }
-    });
+		const lead = await prisma.lead.create({
+			data: {
+				firstName: firstName.trim(),
+				lastName: lastName.trim(),
+				email: email.trim().toLowerCase(),
+				phone: phone?.trim() || null,
+				company: company?.trim() || null,
+				title: title?.trim() || null,
+				status: status || 'PENDING',
+				leadSource: leadSource || null,
+				industry: industry?.trim() || null,
+				rating: rating || null,
+				description: description?.trim() || null,
+				organizationId: req.organizationId,
+				ownerId: req.userId
+			},
+			include: {
+				owner: {
+					select: { id: true, name: true, email: true }
+				}
+			}
+		});
 
-    res.status(201).json(lead);
-  } catch (error) {
-    console.error('Create lead error:', error);
-    if (error.code === 'P2002') {
-      return res.status(409).json({ error: 'A lead with this email already exists in this organization' });
-    }
-    res.status(500).json({ error: 'Internal server error' });
-  }
+		res.status(201).json(lead);
+	} catch (error) {
+		console.error('Create lead error:', error);
+		if (error.code === 'P2002') {
+			return res
+				.status(409)
+				.json({ error: 'A lead with this email already exists in this organization' });
+		}
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 export default router;

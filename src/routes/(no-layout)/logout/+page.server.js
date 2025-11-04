@@ -3,15 +3,13 @@ import { error, redirect } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals, cookies }) {
-  if (await cookies.get('session')) {
-    await cookies.delete('session', { path: '/' });
-  }
-  if (locals.user) {
-
-    delete locals.user
-    await cookies.delete('session', { path: '/' });
-    await cookies.delete('org', { path: '/' });
-  }
-  throw redirect(303, '/login');
-
+	if (await cookies.get('session')) {
+		await cookies.delete('session', { path: '/' });
+	}
+	if (locals.user) {
+		delete locals.user;
+		await cookies.delete('session', { path: '/' });
+		await cookies.delete('org', { path: '/' });
+	}
+	throw redirect(303, '/login');
 }

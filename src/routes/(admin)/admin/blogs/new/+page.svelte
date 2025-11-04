@@ -1,61 +1,72 @@
 <script>
-  import { enhance } from "$app/forms";
+	import { enhance } from '$app/forms';
 
-  /** @type {import('./$types').PageProps} */
-  let { form } = $props();
+	/** @type {import('./$types').PageProps} */
+	let { form } = $props();
 
-  let title = $state('');
-  let excerpt = $state('');
-  
-  function make_slug(/** @type {any} */ title) {
-    return title
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w-]+/g, '');
-  }
+	let title = $state('');
+	let excerpt = $state('');
 
-  let slug = $derived(make_slug(title));
+	function make_slug(/** @type {any} */ title) {
+		return title
+			.toLowerCase()
+			.replace(/\s+/g, '-')
+			.replace(/[^\w-]+/g, '');
+	}
+
+	let slug = $derived(make_slug(title));
 </script>
 
-<div class="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow">
-  <h1 class="text-2xl font-bold mb-6">Create New Blog</h1>
+<div class="mx-auto mt-10 max-w-xl rounded bg-white p-6 shadow">
+	<h1 class="mb-6 text-2xl font-bold">Create New Blog</h1>
 
-  {#if form?.error}
-    <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-      {form.error}
-    </div>
-  {/if}
+	{#if form?.error}
+		<div class="mb-4 rounded border border-red-400 bg-red-100 p-3 text-red-700">
+			{form.error}
+		</div>
+	{/if}
 
-  {#if form?.success}
-    <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-      Blog post created successfully!
-    </div>
-  {/if}
+	{#if form?.success}
+		<div class="mb-4 rounded border border-green-400 bg-green-100 p-3 text-green-700">
+			Blog post created successfully!
+		</div>
+	{/if}
 
-  <form method="POST" class="space-y-4" use:enhance>
-    <div>
-      <label for="title" class="block mb-1 font-medium">Title</label>
-      <input class="w-full border rounded px-3 py-2" id="title" name="title" bind:value={title} required />
-    </div>
-    <div>
-      <label for="excerpt" class="block mb-1 font-medium">Excerpt</label>
-      <textarea
-        class="w-full border rounded px-3 py-2"
-        id="excerpt"
-        name="excerpt"
-        bind:value={excerpt}
-        required
-        rows="2"
-      ></textarea>
-    </div>
-    <div>
-      <label for="slug" class="block mb-1 font-medium">Slug</label>
-      <input class="w-full border rounded px-3 py-2" id="slug" name="slug" bind:value={slug} required />
-    </div>
-    
-    <button
-      type="submit"
-      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >Create Blog</button>
-  </form>
+	<form method="POST" class="space-y-4" use:enhance>
+		<div>
+			<label for="title" class="mb-1 block font-medium">Title</label>
+			<input
+				class="w-full rounded border px-3 py-2"
+				id="title"
+				name="title"
+				bind:value={title}
+				required
+			/>
+		</div>
+		<div>
+			<label for="excerpt" class="mb-1 block font-medium">Excerpt</label>
+			<textarea
+				class="w-full rounded border px-3 py-2"
+				id="excerpt"
+				name="excerpt"
+				bind:value={excerpt}
+				required
+				rows="2"
+			></textarea>
+		</div>
+		<div>
+			<label for="slug" class="mb-1 block font-medium">Slug</label>
+			<input
+				class="w-full rounded border px-3 py-2"
+				id="slug"
+				name="slug"
+				bind:value={slug}
+				required
+			/>
+		</div>
+
+		<button type="submit" class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+			>Create Blog</button
+		>
+	</form>
 </div>

@@ -7,7 +7,7 @@
  * @returns {string} Unsubscribe URL
  */
 export function generateUnsubscribeLink(token, baseUrl = 'https://bottlecrm.io') {
-  return `${baseUrl}/unsubscribe?token=${token}`;
+	return `${baseUrl}/unsubscribe?token=${token}`;
 }
 
 /**
@@ -16,8 +16,8 @@ export function generateUnsubscribeLink(token, baseUrl = 'https://bottlecrm.io')
  * @returns {boolean} True if email is valid
  */
 export function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	return emailRegex.test(email);
 }
 
 /**
@@ -27,9 +27,9 @@ export function isValidEmail(email) {
  * @returns {object} Email template with subject and body
  */
 export function generateWelcomeEmail(email, unsubscribeLink) {
-  return {
-    subject: 'Welcome to BottleCRM Newsletter!',
-    html: `
+	return {
+		subject: 'Welcome to BottleCRM Newsletter!',
+		html: `
       <!DOCTYPE html>
       <html>
       <head>
@@ -71,7 +71,7 @@ export function generateWelcomeEmail(email, unsubscribeLink) {
       </body>
       </html>
     `,
-    text: `
+		text: `
       Welcome to BottleCRM Newsletter!
       
       Thank you for subscribing to our newsletter. Here's what you can expect:
@@ -90,7 +90,7 @@ export function generateWelcomeEmail(email, unsubscribeLink) {
       The free, open-source CRM for startups
       https://bottlecrm.io
     `
-  };
+	};
 }
 
 /**
@@ -100,19 +100,29 @@ export function generateWelcomeEmail(email, unsubscribeLink) {
  * @returns {object} Newsletter template with subject and body
  */
 export function generateNewsletterTemplate(content, unsubscribeLink) {
-  const { subject, headline, articles = [], ctaText = 'Learn More', ctaLink = 'https://bottlecrm.io' } = content;
-  
-  const articlesHtml = articles.map(/** @param {any} article */ article => `
+	const {
+		subject,
+		headline,
+		articles = [],
+		ctaText = 'Learn More',
+		ctaLink = 'https://bottlecrm.io'
+	} = content;
+
+	const articlesHtml = articles
+		.map(
+			/** @param {any} article */ (article) => `
     <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
       <h3 style="margin: 0 0 10px 0; color: #333;">${article.title}</h3>
       <p style="margin: 0 0 15px 0; color: #666; line-height: 1.6;">${article.excerpt}</p>
       <a href="${article.link}" style="color: #667eea; text-decoration: none; font-weight: 500;">Read more →</a>
     </div>
-  `).join('');
-  
-  return {
-    subject,
-    html: `
+  `
+		)
+		.join('');
+
+	return {
+		subject,
+		html: `
       <!DOCTYPE html>
       <html>
       <head>
@@ -147,5 +157,5 @@ export function generateNewsletterTemplate(content, unsubscribeLink) {
       </body>
       </html>
     `
-  };
+	};
 }
