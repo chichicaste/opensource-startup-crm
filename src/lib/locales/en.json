@@ -1,0 +1,48 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "loginWithGoogle": "Login with Google",
+    "welcomeBack": "Welcome Back",
+    "signInToAccount": "Sign in to your free BottleCRM account",
+    "emailAddress": "Email Address",
+    "enterEmail": "Enter your email",
+    "enterPassword": "Enter your password",
+    "signIn": "Sign In",
+    "orContinueWith": "Or continue with",
+    "continueWithGoogle": "Continue with Google",
+    "dontHaveAccount": "Don't have an account?",
+    "createOne": "Create one",
+    "agreeToTerms": "By signing in, you agree to our",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy",
+    "pageTitle": "Login | BottleCRM - Free Open-Source CRM",
+    "metaDescription": "Sign in to BottleCRM - the completely free, open-source CRM solution for startups and small businesses. No subscription fees, unlimited users."
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "leads": "Leads",
+    "contacts": "Contacts",
+    "accounts": "Accounts",
+    "opportunities": "Opportunities",
+    "tasks": "Tasks",
+    "users": "Users",
+    "profile": "Profile"
+  }
+}

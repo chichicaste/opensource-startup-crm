@@ -130,118 +130,111 @@ const prisma = new PrismaClient();
  *         description: Internal server error
  */
 router.get('/', verifyToken, async (req, res) => {
-  try {
-    const userId = req.userId;
-    const { 
-      page = 1, 
-      limit = 10, 
-      search, 
-      industry, 
-      active 
-    } = req.query;
+	try {
+		const userId = req.userId;
+		const { page = 1, limit = 10, search, industry, active } = req.query;
 
-    // Validate pagination parameters
-    const pageNum = Math.max(1, parseInt(page) || 1);
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 10));
-    const skip = (pageNum - 1) * limitNum;
+		// Validate pagination parameters
+		const pageNum = Math.max(1, parseInt(page) || 1);
+		const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 10));
+		const skip = (pageNum - 1) * limitNum;
 
-    // Build where clause for filtering
-    let whereClause = {
-      users: {
-        some: {
-          userId: userId
-        }
-      }
-    };
+		// Build where clause for filtering
+		let whereClause = {
+			users: {
+				some: {
+					userId: userId
+				}
+			}
+		};
 
-    // Add search filter
-    if (search) {
-      whereClause.name = {
-        contains: search,
-        mode: 'insensitive'
-      };
-    }
+		// Add search filter
+		if (search) {
+			whereClause.name = {
+				contains: search,
+				mode: 'insensitive'
+			};
+		}
 
-    // Add industry filter
-    if (industry) {
-      whereClause.industry = {
-        contains: industry,
-        mode: 'insensitive'
-      };
-    }
+		// Add industry filter
+		if (industry) {
+			whereClause.industry = {
+				contains: industry,
+				mode: 'insensitive'
+			};
+		}
 
-    // Add active status filter
-    if (active !== undefined) {
-      whereClause.isActive = active === 'true';
-    }
+		// Add active status filter
+		if (active !== undefined) {
+			whereClause.isActive = active === 'true';
+		}
 
-    // Get organizations with user role
-    const [organizations, totalCount] = await Promise.all([
-      prisma.organization.findMany({
-        where: whereClause,
-        include: {
-          users: {
-            where: {
-              userId: userId
-            },
-            select: {
-              role: true,
-              joinedAt: true
-            }
-          }
-        },
-        orderBy: {
-          name: 'asc'
-        },
-        skip: skip,
-        take: limitNum
-      }),
-      prisma.organization.count({
-        where: whereClause
-      })
-    ]);
+		// Get organizations with user role
+		const [organizations, totalCount] = await Promise.all([
+			prisma.organization.findMany({
+				where: whereClause,
+				include: {
+					users: {
+						where: {
+							userId: userId
+						},
+						select: {
+							role: true,
+							joinedAt: true
+						}
+					}
+				},
+				orderBy: {
+					name: 'asc'
+				},
+				skip: skip,
+				take: limitNum
+			}),
+			prisma.organization.count({
+				where: whereClause
+			})
+		]);
 
-    // Format response
-    const formattedOrganizations = organizations.map(org => ({
-      id: org.id,
-      name: org.name,
-      domain: org.domain,
-      logo: org.logo,
-      website: org.website,
-      industry: org.industry,
-      description: org.description,
-      isActive: org.isActive,
-      createdAt: org.createdAt,
-      updatedAt: org.updatedAt,
-      userRole: org.users[0]?.role || 'USER',
-      joinedAt: org.users[0]?.joinedAt
-    }));
+		// Format response
+		const formattedOrganizations = organizations.map((org) => ({
+			id: org.id,
+			name: org.name,
+			domain: org.domain,
+			logo: org.logo,
+			website: org.website,
+			industry: org.industry,
+			description: org.description,
+			isActive: org.isActive,
+			createdAt: org.createdAt,
+			updatedAt: org.updatedAt,
+			userRole: org.users[0]?.role || 'USER',
+			joinedAt: org.users[0]?.joinedAt
+		}));
 
-    // Calculate pagination info
-    const totalPages = Math.ceil(totalCount / limitNum);
-    const hasNext = pageNum < totalPages;
-    const hasPrev = pageNum > 1;
+		// Calculate pagination info
+		const totalPages = Math.ceil(totalCount / limitNum);
+		const hasNext = pageNum < totalPages;
+		const hasPrev = pageNum > 1;
 
-    res.json({
-      success: true,
-      organizations: formattedOrganizations,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total: totalCount,
-        totalPages,
-        hasNext,
-        hasPrev
-      }
-    });
-
-  } catch (error) {
-    console.error('Organizations list error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Internal server error' 
-    });
-  }
+		res.json({
+			success: true,
+			organizations: formattedOrganizations,
+			pagination: {
+				page: pageNum,
+				limit: limitNum,
+				total: totalCount,
+				totalPages,
+				hasNext,
+				hasPrev
+			}
+		});
+	} catch (error) {
+		console.error('Organizations list error:', error);
+		res.status(500).json({
+			success: false,
+			error: 'Internal server error'
+		});
+	}
 });
 
 /**
@@ -280,111 +273,103 @@ router.get('/', verifyToken, async (req, res) => {
  *         description: Internal server error
  */
 router.post('/', verifyToken, async (req, res) => {
-  try {
-    const userId = req.userId;
-    const { 
-      name, 
-      domain, 
-      logo, 
-      website, 
-      industry, 
-      description 
-    } = req.body;
+	try {
+		const userId = req.userId;
+		const { name, domain, logo, website, industry, description } = req.body;
 
-    // Validate required fields
-    if (!name || !name.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Organization name is required'
-      });
-    }
+		// Validate required fields
+		if (!name || !name.trim()) {
+			return res.status(400).json({
+				success: false,
+				error: 'Organization name is required'
+			});
+		}
 
-    // Check if organization with this name already exists
-    const existingOrg = await prisma.organization.findFirst({
-      where: {
-        name: {
-          equals: name.trim(),
-          mode: 'insensitive'
-        }
-      }
-    });
+		// Check if organization with this name already exists
+		const existingOrg = await prisma.organization.findFirst({
+			where: {
+				name: {
+					equals: name.trim(),
+					mode: 'insensitive'
+				}
+			}
+		});
 
-    if (existingOrg) {
-      return res.status(409).json({
-        success: false,
-        error: 'Organization with this name already exists'
-      });
-    }
+		if (existingOrg) {
+			return res.status(409).json({
+				success: false,
+				error: 'Organization with this name already exists'
+			});
+		}
 
-    // Validate website URL format if provided
-    if (website && website.trim()) {
-      try {
-        new URL(website.trim());
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid website URL format'
-        });
-      }
-    }
+		// Validate website URL format if provided
+		if (website && website.trim()) {
+			try {
+				new URL(website.trim());
+			} catch (error) {
+				return res.status(400).json({
+					success: false,
+					error: 'Invalid website URL format'
+				});
+			}
+		}
 
-    // Create organization and add user as admin
-    const organization = await prisma.organization.create({
-      data: {
-        name: name.trim(),
-        domain: domain?.trim() || null,
-        logo: logo?.trim() || null,
-        website: website?.trim() || null,
-        industry: industry?.trim() || null,
-        description: description?.trim() || null,
-        users: {
-          create: {
-            userId: userId,
-            role: 'ADMIN'
-          }
-        }
-      },
-      include: {
-        users: {
-          where: {
-            userId: userId
-          },
-          select: {
-            role: true,
-            joinedAt: true
-          }
-        }
-      }
-    });
+		// Create organization and add user as admin
+		const organization = await prisma.organization.create({
+			data: {
+				name: name.trim(),
+				domain: domain?.trim() || null,
+				logo: logo?.trim() || null,
+				website: website?.trim() || null,
+				industry: industry?.trim() || null,
+				description: description?.trim() || null,
+				users: {
+					create: {
+						userId: userId,
+						role: 'ADMIN'
+					}
+				}
+			},
+			include: {
+				users: {
+					where: {
+						userId: userId
+					},
+					select: {
+						role: true,
+						joinedAt: true
+					}
+				}
+			}
+		});
 
-    // Format response
-    const formattedOrganization = {
-      id: organization.id,
-      name: organization.name,
-      domain: organization.domain,
-      logo: organization.logo,
-      website: organization.website,
-      industry: organization.industry,
-      description: organization.description,
-      isActive: organization.isActive,
-      createdAt: organization.createdAt,
-      updatedAt: organization.updatedAt,
-      userRole: organization.users[0]?.role || 'ADMIN',
-      joinedAt: organization.users[0]?.joinedAt
-    };
+		// Format response
+		const formattedOrganization = {
+			id: organization.id,
+			name: organization.name,
+			domain: organization.domain,
+			logo: organization.logo,
+			website: organization.website,
+			industry: organization.industry,
+			description: organization.description,
+			isActive: organization.isActive,
+			createdAt: organization.createdAt,
+			updatedAt: organization.updatedAt,
+			userRole: organization.users[0]?.role || 'ADMIN',
+			joinedAt: organization.users[0]?.joinedAt
+		};
 
-    res.status(201).json({
-      success: true,
-      organization: formattedOrganization
-    });
-
-  } catch (error) {
-    console.error('Organization creation error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
+		res.status(201).json({
+			success: true,
+			organization: formattedOrganization
+		});
+	} catch (error) {
+		console.error('Organization creation error:', error);
+		res.status(500).json({
+			success: false,
+			error: 'Internal server error'
+		});
+	}
 });
 
 export default router;

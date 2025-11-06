@@ -49,22 +49,22 @@ router.use(requireOrganization);
  *         description: List of accounts
  */
 router.get('/', async (req, res) => {
-  try {
-    const accounts = await prisma.account.findMany({
-      where: { organizationId: req.organizationId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        owner: {
-          select: { id: true, firstName: true, lastName: true, email: true }
-        }
-      }
-    });
+	try {
+		const accounts = await prisma.account.findMany({
+			where: { organizationId: req.organizationId },
+			orderBy: { createdAt: 'desc' },
+			include: {
+				owner: {
+					select: { id: true, firstName: true, lastName: true, email: true }
+				}
+			}
+		});
 
-    res.json({ accounts });
-  } catch (error) {
-    console.error('Get accounts error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+		res.json({ accounts });
+	} catch (error) {
+		console.error('Get accounts error:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 /**
@@ -103,35 +103,35 @@ router.get('/', async (req, res) => {
  *         description: Account created successfully
  */
 router.post('/', async (req, res) => {
-  try {
-    const { name, industry, phone, email, website } = req.body;
+	try {
+		const { name, industry, phone, email, website } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ error: 'Account name is required' });
-    }
+		if (!name) {
+			return res.status(400).json({ error: 'Account name is required' });
+		}
 
-    const account = await prisma.account.create({
-      data: {
-        name,
-        industry,
-        phone,
-        email,
-        website,
-        organizationId: req.organizationId,
-        ownerId: req.userId
-      },
-      include: {
-        owner: {
-          select: { id: true, firstName: true, lastName: true, email: true }
-        }
-      }
-    });
+		const account = await prisma.account.create({
+			data: {
+				name,
+				industry,
+				phone,
+				email,
+				website,
+				organizationId: req.organizationId,
+				ownerId: req.userId
+			},
+			include: {
+				owner: {
+					select: { id: true, firstName: true, lastName: true, email: true }
+				}
+			}
+		});
 
-    res.status(201).json(account);
-  } catch (error) {
-    console.error('Create account error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+		res.status(201).json(account);
+	} catch (error) {
+		console.error('Create account error:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 export default router;

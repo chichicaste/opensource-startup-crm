@@ -1,41 +1,53 @@
 <script>
-  /** @type {{ data: import('./$types').PageData }} */
-  let { data } = $props();
+	/** @type {{ data: import('./$types').PageData }} */
+	let { data } = $props();
 </script>
 
 <div class="container mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-6">Blogs</h1>
-  <div class="mb-4 flex justify-end">
-    <a href="/admin/blogs/new" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-      + New Blog
-    </a>
-  </div>
-  <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow">
-    <thead>
-      <tr class="bg-gray-100">
-        <th class="py-2 px-4 border-b text-left">Title</th>
-        <th class="py-2 px-4 border-b text-left">Category</th>
-        <th class="py-2 px-4 border-b text-left">Draft</th>
-        <th class="py-2 px-4 border-b text-left">Created At</th>
-        <th class="py-2 px-4 border-b text-left">Updated At</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each data.blogs as blog}
-        <tr class="hover:bg-gray-50">
-          <td class="py-2 px-4 border-b"><a href="/admin/blogs/{blog.id}/">{blog.title}</a> - <a href="/admin/blogs/{blog.id}/edit/">Edit</a></td>
-          <td class="py-2 px-4 border-b">N/A</td>
-          <td class="py-2 px-4 border-b">
-            {#if blog.draft}
-              <span class="inline-block px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded">Draft</span>
-            {:else}
-              <span class="inline-block px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded">Published</span>
-            {/if}
-          </td>
-          <td class="py-2 px-4 border-b">{new Date(blog.createdAt).toLocaleString()}</td>
-          <td class="py-2 px-4 border-b">{new Date(blog.updatedAt).toLocaleString()}</td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
+	<h1 class="mb-6 text-2xl font-bold">Blogs</h1>
+	<div class="mb-4 flex justify-end">
+		<a
+			href="/admin/blogs/new"
+			class="inline-block rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700"
+		>
+			+ New Blog
+		</a>
+	</div>
+	<table class="min-w-full rounded-lg border border-gray-200 bg-white shadow">
+		<thead>
+			<tr class="bg-gray-100">
+				<th class="border-b px-4 py-2 text-left">Title</th>
+				<th class="border-b px-4 py-2 text-left">Category</th>
+				<th class="border-b px-4 py-2 text-left">Draft</th>
+				<th class="border-b px-4 py-2 text-left">Created At</th>
+				<th class="border-b px-4 py-2 text-left">Updated At</th>
+			</tr>
+		</thead>
+		<tbody>
+			{#each data.blogs as blog}
+				<tr class="hover:bg-gray-50">
+					<td class="border-b px-4 py-2"
+						><a href="/admin/blogs/{blog.id}/">{blog.title}</a> -
+						<a href="/admin/blogs/{blog.id}/edit/">Edit</a></td
+					>
+					<td class="border-b px-4 py-2">N/A</td>
+					<td class="border-b px-4 py-2">
+						{#if blog.draft}
+							<span
+								class="inline-block rounded bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800"
+								>Draft</span
+							>
+						{:else}
+							<span
+								class="inline-block rounded bg-green-100 px-2 py-1 text-xs font-semibold text-green-800"
+								>Published</span
+							>
+						{/if}
+					</td>
+					<td class="border-b px-4 py-2">{new Date(blog.createdAt).toLocaleString()}</td>
+					<td class="border-b px-4 py-2">{new Date(blog.updatedAt).toLocaleString()}</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
 </div>

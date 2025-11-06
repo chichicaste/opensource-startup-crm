@@ -17,6 +17,7 @@ model User {
   user_id           String              @unique
   email             String              @unique
   name              String?
+  password          String?             // For traditional email/password auth
   session_id        String?             @unique
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt

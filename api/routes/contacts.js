@@ -25,29 +25,29 @@ router.use(requireOrganization);
  *         description: List of contacts
  */
 router.get('/', async (req, res) => {
-  try {
-    const contacts = await prisma.contact.findMany({
-      where: { organizationId: req.organizationId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        relatedAccounts: {
-          include: {
-            account: {
-              select: { id: true, name: true }
-            }
-          }
-        },
-        owner: {
-          select: { id: true, name: true, email: true }
-        }
-      }
-    });
+	try {
+		const contacts = await prisma.contact.findMany({
+			where: { organizationId: req.organizationId },
+			orderBy: { createdAt: 'desc' },
+			include: {
+				relatedAccounts: {
+					include: {
+						account: {
+							select: { id: true, name: true }
+						}
+					}
+				},
+				owner: {
+					select: { id: true, name: true, email: true }
+				}
+			}
+		});
 
-    res.json({ contacts });
-  } catch (error) {
-    console.error('Get contacts error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+		res.json({ contacts });
+	} catch (error) {
+		console.error('Get contacts error:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 /**
@@ -106,95 +106,111 @@ router.get('/', async (req, res) => {
  *         description: Validation error
  */
 router.post('/', async (req, res) => {
-  try {
-    const { firstName, lastName, email, phone, title, department, street, city, state, postalCode, country, description, accountId } = req.body;
+	try {
+		const {
+			firstName,
+			lastName,
+			email,
+			phone,
+			title,
+			department,
+			street,
+			city,
+			state,
+			postalCode,
+			country,
+			description,
+			accountId
+		} = req.body;
 
-    if (!firstName || !lastName) {
-      return res.status(400).json({ error: 'First name and last name are required' });
-    }
+		if (!firstName || !lastName) {
+			return res.status(400).json({ error: 'First name and last name are required' });
+		}
 
-    // Validate account if provided
-    let account = null;
-    if (accountId) {
-      account = await prisma.account.findFirst({
-        where: {
-          id: accountId,
-          organizationId: req.organizationId
-        }
-      });
+		// Validate account if provided
+		let account = null;
+		if (accountId) {
+			account = await prisma.account.findFirst({
+				where: {
+					id: accountId,
+					organizationId: req.organizationId
+				}
+			});
 
-      if (!account) {
-        return res.status(400).json({ error: 'Account not found in your organization' });
-      }
-    }
+			if (!account) {
+				return res.status(400).json({ error: 'Account not found in your organization' });
+			}
+		}
 
-    // Check for duplicate email within the organization if email is provided
-    if (email) {
-      const existingContact = await prisma.contact.findFirst({
-        where: {
-          email: email,
-          organizationId: req.organizationId
-        }
-      });
+		// Check for duplicate email within the organization if email is provided
+		if (email) {
+			const existingContact = await prisma.contact.findFirst({
+				where: {
+					email: email,
+					organizationId: req.organizationId
+				}
+			});
 
-      if (existingContact) {
-        return res.status(400).json({ error: 'A contact with this email already exists in this organization' });
-      }
-    }
+			if (existingContact) {
+				return res
+					.status(400)
+					.json({ error: 'A contact with this email already exists in this organization' });
+			}
+		}
 
-    // Create the contact
-    const contact = await prisma.contact.create({
-      data: {
-        firstName,
-        lastName,
-        email: email || null,
-        phone: phone || null,
-        title: title || null,
-        department: department || null,
-        street: street || null,
-        city: city || null,
-        state: state || null,
-        postalCode: postalCode || null,
-        country: country || null,
-        description: description || null,
-        organizationId: req.organizationId,
-        ownerId: req.userId
-      }
-    });
+		// Create the contact
+		const contact = await prisma.contact.create({
+			data: {
+				firstName,
+				lastName,
+				email: email || null,
+				phone: phone || null,
+				title: title || null,
+				department: department || null,
+				street: street || null,
+				city: city || null,
+				state: state || null,
+				postalCode: postalCode || null,
+				country: country || null,
+				description: description || null,
+				organizationId: req.organizationId,
+				ownerId: req.userId
+			}
+		});
 
-    // Create account-contact relationship if accountId is provided
-    if (accountId) {
-      await prisma.accountContactRelationship.create({
-        data: {
-          accountId: accountId,
-          contactId: contact.id,
-          isPrimary: true
-        }
-      });
-    }
+		// Create account-contact relationship if accountId is provided
+		if (accountId) {
+			await prisma.accountContactRelationship.create({
+				data: {
+					accountId: accountId,
+					contactId: contact.id,
+					isPrimary: true
+				}
+			});
+		}
 
-    // Fetch the created contact with relationships
-    const createdContact = await prisma.contact.findUnique({
-      where: { id: contact.id },
-      include: {
-        relatedAccounts: {
-          include: {
-            account: {
-              select: { id: true, name: true }
-            }
-          }
-        },
-        owner: {
-          select: { id: true, name: true, email: true }
-        }
-      }
-    });
+		// Fetch the created contact with relationships
+		const createdContact = await prisma.contact.findUnique({
+			where: { id: contact.id },
+			include: {
+				relatedAccounts: {
+					include: {
+						account: {
+							select: { id: true, name: true }
+						}
+					}
+				},
+				owner: {
+					select: { id: true, name: true, email: true }
+				}
+			}
+		});
 
-    res.status(201).json(createdContact);
-  } catch (error) {
-    console.error('Create contact error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+		res.status(201).json(createdContact);
+	} catch (error) {
+		console.error('Create contact error:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 /**
@@ -222,40 +238,40 @@ router.post('/', async (req, res) => {
  *         description: Contact not found
  */
 router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
+	try {
+		const { id } = req.params;
 
-    const contact = await prisma.contact.findFirst({
-      where: {
-        id: id,
-        organizationId: req.organizationId
-      },
-      include: {
-        relatedAccounts: {
-          include: {
-            account: {
-              select: { id: true, name: true, type: true, website: true, phone: true }
-            }
-          }
-        },
-        owner: {
-          select: { id: true, name: true, email: true }
-        },
-        organization: {
-          select: { id: true, name: true }
-        }
-      }
-    });
+		const contact = await prisma.contact.findFirst({
+			where: {
+				id: id,
+				organizationId: req.organizationId
+			},
+			include: {
+				relatedAccounts: {
+					include: {
+						account: {
+							select: { id: true, name: true, type: true, website: true, phone: true }
+						}
+					}
+				},
+				owner: {
+					select: { id: true, name: true, email: true }
+				},
+				organization: {
+					select: { id: true, name: true }
+				}
+			}
+		});
 
-    if (!contact) {
-      return res.status(404).json({ error: 'Contact not found' });
-    }
+		if (!contact) {
+			return res.status(404).json({ error: 'Contact not found' });
+		}
 
-    res.json(contact);
-  } catch (error) {
-    console.error('Get contact details error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+		res.json(contact);
+	} catch (error) {
+		console.error('Get contact details error:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 export default router;

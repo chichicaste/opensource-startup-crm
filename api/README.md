@@ -16,6 +16,7 @@ Express.js API for BottleCRM with JWT authentication, Swagger documentation, and
 1. The required environment variables are already added to your existing `.env` file.
 
 2. **Generate a secure JWT secret** (required for production):
+
 ```bash
 # Using Node.js
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -28,11 +29,13 @@ openssl rand -hex 32
 ```
 
 3. Update your `.env` file with the generated secret:
+
 ```env
 JWT_SECRET=your-generated-secret-key-here
 ```
 
 4. Start the API server:
+
 ```bash
 # Development with auto-reload
 pnpm run api:dev
@@ -42,6 +45,7 @@ pnpm run api:start
 ```
 
 5. Visit Swagger documentation:
+
 ```
 http://localhost:3001/api-docs
 ```
@@ -53,6 +57,7 @@ http://localhost:3001/api-docs
    - Response: `{ "token": "jwt-token", "user": {...} }`
 
 2. **Use Token**: Include in Authorization header:
+
    ```
    Authorization: Bearer <jwt-token>
    ```
@@ -65,23 +70,28 @@ http://localhost:3001/api-docs
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/google` - Google OAuth mobile login
 - `GET /api/auth/me` - Get current user profile
 
 ### Leads
+
 - `GET /api/leads` - Get organization leads (paginated)
 - `GET /api/leads/:id` - Get lead by ID
 - `POST /api/leads` - Create new lead
 
 ### Accounts
+
 - `GET /api/accounts` - Get organization accounts
 - `POST /api/accounts` - Create new account
 
 ### Contacts
+
 - `GET /api/contacts` - Get organization contacts
 - `POST /api/contacts` - Create new contact
 
 ### Opportunities
+
 - `GET /api/opportunities` - Get organization opportunities
 - `POST /api/opportunities` - Create new opportunity
 

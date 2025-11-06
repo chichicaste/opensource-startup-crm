@@ -17,7 +17,7 @@ This document provides guidelines and instructions for contributing to the proje
 
 ## Code of Conduct
 
-We are committed to providing a welcoming and inspiring community for all. 
+We are committed to providing a welcoming and inspiring community for all.
 
 ## Getting Started
 
@@ -59,6 +59,7 @@ We are committed to providing a welcoming and inspiring community for all.
 ## Development Workflow
 
 1. Create a new branch for your work:
+
    ```bash
    git checkout -b feature/your-feature-name
    # or
@@ -66,12 +67,15 @@ We are committed to providing a welcoming and inspiring community for all.
    ```
 
 2. Make your changes and commit them using descriptive commit messages:
+
    ```bash
    git commit -m "feat: add new feature X that does Y"
    ```
+
    We follow the [Conventional Commits](https://www.conventionalcommits.org/) standard for commit messages.
 
 3. Push your branch to GitHub:
+
    ```bash
    git push origin feature/your-feature-name
    ```
